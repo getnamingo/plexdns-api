@@ -4,21 +4,23 @@ declare(strict_types=1);
 use Dotenv\Dotenv;
 use PlexDNS\Service;
 
-// Autoload dependencies via Composer
 require_once __DIR__ . '/vendor/autoload.php';
-require_once 'helpers.php';
+require_once __DIR__ . '/helpers.php';
 
-// Load environment variables from .env
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
-// Required configuration from .env
+$logFilePath = '/var/log/plexdns/plexdns.log';
+$log = setupLogger($logFilePath, 'PLEXDNS_ApI');
+$log->info('job started.');
+
 $apiKey    = $_ENV['API_KEY']    ?? null;
 $provider  = $_ENV['PROVIDER']   ?? null;
 $apiToken  = $_ENV['API_TOKEN']  ?? null; // our API token for authenticating requests
 
 if (!$apiKey || !$provider || !$apiToken) {
-    die("Error: Missing required environment variables (API_KEY, PROVIDER or API_TOKEN) in .env\n");
+    $log->error('Missing required environment variables (API_KEY, PROVIDER or API_TOKEN) in .env');
+    exit(1);
 }
 
 // ClouDNS specific credentials (if using ClouDNS)
@@ -26,7 +28,8 @@ if ($provider === 'ClouDNS') {
     $cloudnsAuthId       = $_ENV['AUTH_ID']       ?? null;
     $cloudnsAuthPassword = $_ENV['AUTH_PASSWORD'] ?? null;
     if (!$cloudnsAuthId || !$cloudnsAuthPassword) {
-        die("Error: Missing ClouDNS credentials (AUTH_ID and AUTH_PASSWORD) in .env\n");
+        $log->error('Missing ClouDNS credentials (AUTH_ID and AUTH_PASSWORD) in .env');
+        exit(1);
     }
 }
 
@@ -39,7 +42,8 @@ $password = $_ENV['DB_PASS'] ?? '';
 $sqlitePath = __DIR__ . '/database.sqlite';
 
 if ($dbType !== 'sqlite' && (!$dbName || !$username || !$password)) {
-    die("Error: Missing required database configuration in .env\n");
+    $log->error('Missing required database configuration in .env');
+    exit(1);
 }
 
 try {
@@ -51,7 +55,8 @@ try {
     } elseif ($dbType === 'sqlite') {
         $dsn = "sqlite:$sqlitePath";
     } else {
-        throw new Exception("Unsupported database type: $dbType");
+        $log->error("Unsupported database type: $dbType");
+        exit(1);
     }
 
     // Create PDO instance with proper error handling
@@ -65,17 +70,17 @@ try {
         $pdo->exec("PRAGMA foreign_keys = ON;");
     }
 } catch (PDOException $e) {
-    die("Database connection error: " . $e->getMessage());
+    $log->error("Database connection error: " . $e->getMessage());
+    exit(1);
 }
 
 // Initialize the PlexDNS Service with the PDO connection
 $service = new Service($pdo);
 
-// Create a Swoole HTTP server listening on 0.0.0.0:9501
 $server = new Swoole\Http\Server("0.0.0.0", 9501);
 
 $server->on("start", function (Swoole\Http\Server $server) {
-    echo "Swoole HTTP server started at http://0.0.0.0:9501\n";
+    $log->info('PlexDNS API Server started at http://0.0.0.0:9501');
 });
 
 // Main request handler
@@ -133,9 +138,7 @@ $server->on("request", function (Swoole\Http\Request $request, Swoole\Http\Respo
             if (!isset($input['client_id'], $input['config'])) {
                 throw new Exception("Missing parameters: client_id and config are required");
             }
-            // Sanitize client_id as integer
             $clientId = intval($input['client_id']);
-            // Assume config is an associative array; re-encode safely.
             $config = json_encode($input['config']);
             $domain = $service->createDomain(['client_id' => $clientId, 'config' => $config]);
             $result = ['status' => 'success', 'domain' => $domain];

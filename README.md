@@ -1,5 +1,9 @@
 # PlexDNS API Tool
 
+[![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
+
+[![SWUbanner](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner2-direct.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
+
 The PlexDNS API Tool is a JSON API built on Swoole and the [namingo/plexdns](https://github.com/namingo/plexdns) library. It provides endpoints for managing DNS domains and records while incorporating API token authentication.
 
 ## Features
