@@ -1,3 +1,14 @@
+> [!IMPORTANT]
+> **PlexDNS API has been merged into [Cardo DNS](https://github.com/getnamingo/cardo-dns) and is no longer maintained as a separate project.**
+>
+> Please use **[getnamingo/cardo-dns](https://github.com/getnamingo/cardo-dns)** for:
+> - new installations;
+> - migration instructions for existing PlexDNS API installations;
+> - current configuration and documentation;
+> - future updates, fixes, and development.
+>
+> The documentation below is retained for reference and should not be used for new deployments.
+
 # PlexDNS API Tool
 
 [![StandWithUkraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://github.com/vshymanskyy/StandWithUkraine/blob/main/docs/README.md)
